@@ -13,23 +13,37 @@
 
 #include <string>
 
+#include <boost/filesystem.hpp>
+#include <boost/python.hpp>
+
+#include <Python.h>
+
+#include "netrom.h"
+
+namespace fs = boost::filesystem;
+namespace py = boost::python;
+
 namespace netrom {
 
 class Netrom {
 public:
-	virtual ~Netrom();
-
 	bool hasInitFailed();
 
 	SDL_Renderer* getRen();
 	SDL_Window* getWin();
+	fs::path getRes();
+	fs::path getLib();
+	py::object getPyGlobalNamespace();
 
 	static Netrom* init();
+	static void del(Netrom *gameEngine);
+
 	void poolEvents();
 	void mainLoop();
 
 private:
 	Netrom();
+	virtual ~Netrom();
 
 	void panic(std::string msg);
 
@@ -45,6 +59,10 @@ private:
 	char32_t **glyphMatrix;
 	int glyphMatrixX;
 	int glyphMatrixY;
+	fs::path root;
+	fs::path res;
+	fs::path lib;
+	netrom::Level *currentLevel;
 };
 
 } /* namespace netrom */

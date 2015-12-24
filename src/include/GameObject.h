@@ -8,6 +8,8 @@
 #ifndef SRC_GAMEOBJECT_H_
 #define SRC_GAMEOBJECT_H_
 
+#include "netrom.h"
+
 namespace netrom {
 
 class GameObject {

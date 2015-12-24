@@ -2,14 +2,14 @@
 
 #include <SDL2/SDL.h>
 
-#include "Netrom.h"
+#include "netrom.h"
 
 int main(int argc, char **argv) {
 
-	netrom::Netrom* netrom = netrom::Netrom::init();
+	netrom::Netrom* game = netrom::Netrom::init();
 
-	netrom->mainLoop();
-	delete netrom;
+	game->mainLoop();
+	game->del(game);
 
     return 0;
 }

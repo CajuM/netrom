@@ -9,8 +9,12 @@
 
 namespace netrom {
 
-Level::Level(Netrom& gameEngine) {
+Level::Level(Netrom& gameEngine, std::string name) {
 	this->gameEngine = &gameEngine;
+	this->levelPath = this->gameEngine->getRes() / "levels" / name / (name + ".py");
+	this->script = new PyScript(gameEngine, this->levelPath);
+	this->script->bind("gameObjects", this->script->toPythonList(this->gameObjects));
+	this->script->init();
 	this->sceneX = 10000;
 	this->sceneY = 10000;
 	this->scene = new char32_t*[sceneY];
@@ -23,12 +27,15 @@ Level::Level(Netrom& gameEngine) {
 }
 
 Level::~Level() {
-	// TODO Auto-generated destructor stub
+	this->script->del(this->script);
+	int i;
+	for (i = 0; i < this->sceneY; i++)
+		delete[] this->scene[i];
+	delete[] this->scene;
 }
 
-Level* Level::load(Netrom& gameEngine, std::string path) {
-	Level *l = new Level(gameEngine);
-	return l;
+char** Level::update() {
+	return nullptr;
 }
 
 } /* namespace netrom */

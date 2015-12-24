@@ -18,6 +18,12 @@ namespace netrom {
 Netrom::Netrom() {
 	this->initFailed = false;
 
+	this->root =  fs::path(SDL_GetBasePath()).parent_path().parent_path();
+
+	this->res = this->root / "share" / "netrom";
+
+	this->lib = this->root / "lib";
+
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		this->initFailed = true;
@@ -44,7 +50,7 @@ Netrom::Netrom() {
 		this->initFailed = true;
 	}
 
-	font = TTF_OpenFont("../res/unifont_csur-8.0.01.ttf", 20);
+	font = TTF_OpenFont((this->res / "fonts" / "unifont_csur-8.0.01.ttf").native().c_str(), 20);
 	if (font == nullptr) {
 		std::cout << "TTF_OpenFont" << std::endl;
 		this->initFailed = true;
@@ -63,6 +69,14 @@ Netrom::Netrom() {
 		for (j = 0; j < this->glyphMatrixX; j++)
 			this->glyphMatrix[i][j] = '\0';
 	}
+
+    PyImport_AppendInittab((char*)"pynetrom", INIT_PYNETROM_MODULE);
+    Py_Initialize();
+    PyImport_ImportModule("pynetrom");
+	this->currentLevel = new netrom::Level(*this, "intro");
+	delete this->currentLevel;
+	this->currentLevel = new netrom::Level(*this, "openworld");
+	delete this->currentLevel;
 }
 
 Netrom::~Netrom() {
@@ -76,7 +90,6 @@ Netrom* Netrom::init() {
 	Netrom* netrom = new Netrom();
 	if (netrom->hasInitFailed()) {
 		delete netrom;
-		SDL_Quit();
 		exit(1);
 	}
 	return netrom;
@@ -174,6 +187,19 @@ void Netrom::drawGlyphMatrix() {
 			drawGlyph(dest, j, i);
 		}
 	}
+}
+
+fs::path Netrom::getRes() {
+	return this->res;
+}
+
+fs::path Netrom::getLib() {
+	return this->lib;
+}
+
+void Netrom::del(Netrom *gameEngine) {
+	delete gameEngine;
+	Py_Finalize();
 }
 
 } /* namespace netrom */

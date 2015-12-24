@@ -11,24 +11,29 @@
 #include <vector>
 #include <string>
 
-#include "GameObject.h"
-#include "Netrom.h"
+#include <boost/filesystem.hpp>
+
+#include "netrom.h"
+
+namespace fs = boost::filesystem;
 
 namespace netrom {
 
 class Level {
 public:
 	virtual ~Level();
+	Level(Netrom& gameEngine, std::string path);
 
-	static Level* load(Netrom& gameEngine, std::string path);
+	char** update();
+
 private:
-	Level(Netrom& gameEngine);
-
-	std::vector<GameObject*> gameObjects;
+	std::vector<GameObject> gameObjects;
 	char32_t** scene;
 	int sceneX;
 	int sceneY;
 	Netrom* gameEngine;
+	fs::path levelPath;
+	PyScript *script;
 };
 
 } /* namespace netrom */
