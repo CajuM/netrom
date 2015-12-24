@@ -30,7 +30,6 @@ list(APPEND src
 	Netrom.cpp
 	Level.cpp
 	GameObject.cpp
-	GameObjectList.cpp
 	PyScript.cpp
 )
 

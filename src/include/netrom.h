@@ -25,7 +25,5 @@ namespace netrom {
 #include "Level.h"
 #include "Netrom.h"
 #include "PyScript.h"
-#include "GameObjectList.h"
-
 
 #endif /* SRC_INCLUDE_NETROM_H_ */
