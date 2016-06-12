@@ -21,7 +21,10 @@ function Coin()
   return self
 end
 
-function Character()
+function Character(icon, mask, name)
+  local self = GameObject(icon, mask, name)
+  
+  return self
 end
 
 function Player()

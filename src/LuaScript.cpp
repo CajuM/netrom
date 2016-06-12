@@ -41,11 +41,8 @@ void LuaScript::printErr(int ret) {
 	if (ret == 0) {
 		return;
 	}
-    lua_getglobal(this->lua, "debug");
-    lua_getfield(this->lua, -1, "traceback");
-    lua_remove(this->lua, -2);
-    lua_call(this->lua, 0, 0);
 	std::cout << lua_tostring(this->lua, -1) << std::endl;
+	lua_remove(this->lua, -1);
 }
 
 void LuaScript::load() {
