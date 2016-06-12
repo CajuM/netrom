@@ -15,22 +15,52 @@
 
 namespace netrom {
 
-Netrom::Netrom() {
+Netrom::Netrom(int argc, char ** argv) {
+	if (argc == 2 && std::string(argv[1]) == "-d") {
+		std::cout << "Debugging enabled" << std::endl;
+		this->debug = true;
+	} else {
+		this->debug = false;
+	}
+
 	this->initFailed = false;
 
-	this->root =  fs::path(SDL_GetBasePath()).parent_path().parent_path();
+	char * str = SDL_GetBasePath();
+	this->root = fs::path(str).parent_path().parent_path();
+	free(str);
 
 	this->res = this->root / "share" / "netrom";
 
 	this->lib = this->root / "lib";
+
+	this->quit = false;
 
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		this->initFailed = true;
 	}
 
-	this->win = SDL_CreateWindow("Hello World!", 100, 100, 640, 480,
-			SDL_WINDOW_SHOWN);
+	if (TTF_Init() != 0) {
+		std::cout << "TTF_Init" << std::endl;
+		this->initFailed = true;
+	}
+
+	this->fontSize = 18;
+	font = TTF_OpenFont(
+			(this->res / "fonts" / "Monospace.ttf").native().c_str(),
+			this->fontSize);
+	if (font == nullptr) {
+		std::cout << "TTF_OpenFont: " << TTF_GetError() << std::endl;
+		this->initFailed = true;
+	}
+	TTF_SizeUTF8(font, "A", &(this->glyphWidth), &(this->glyphHeight));
+
+	this->screenWidth = 80;
+	this->screenHeight = 30;
+
+	this->win = SDL_CreateWindow("Hello World!", 100, 100,
+			this->screenWidth * this->glyphWidth,
+			this->screenHeight * this->glyphHeight, SDL_WINDOW_SHOWN);
 	if (win == nullptr) {
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 		this->initFailed = true;
@@ -45,49 +75,19 @@ Netrom::Netrom() {
 		this->initFailed = true;
 	}
 
-	if (TTF_Init() != 0) {
-		std::cout << "TTF_Init" << std::endl;
-		this->initFailed = true;
-	}
-
-	font = TTF_OpenFont((this->res / "fonts" / "unifont_csur-8.0.01.ttf").native().c_str(), 20);
-	if (font == nullptr) {
-		std::cout << "TTF_OpenFont" << std::endl;
-		this->initFailed = true;
-	}
-
-	this->quit = false;
-
-	this->glyphMatrixX = 640 / 10;
-	this->glyphMatrixY = 480 / 20;
-
-	this->glyphMatrix = new char32_t*[this->glyphMatrixY];
-	int i;
-	for (i = 0; i < this->glyphMatrixY; i++) {
-		this->glyphMatrix[i] = new char32_t[this->glyphMatrixX];
-		int j;
-		for (j = 0; j < this->glyphMatrixX; j++)
-			this->glyphMatrix[i][j] = '\0';
-	}
-
-    PyImport_AppendInittab((char*)"pynetrom", INIT_PYNETROM_MODULE);
-    Py_Initialize();
-    PyImport_ImportModule("pynetrom");
-	this->currentLevel = new netrom::Level(*this, "intro");
-	delete this->currentLevel;
-	this->currentLevel = new netrom::Level(*this, "openworld");
-	delete this->currentLevel;
+	this->currentLevel = new Level(this, "intro");
 }
 
 Netrom::~Netrom() {
+	delete this->currentLevel;
 	TTF_CloseFont(this->font);
 	SDL_DestroyRenderer(this->ren);
 	SDL_DestroyWindow(this->win);
 	SDL_Quit();
 }
 
-Netrom* Netrom::init() {
-	Netrom* netrom = new Netrom();
+Netrom* Netrom::init(int argc, char ** argv) {
+	Netrom* netrom = new Netrom(argc, argv);
 	if (netrom->hasInitFailed()) {
 		delete netrom;
 		exit(1);
@@ -122,7 +122,7 @@ void Netrom::drawGlyph(std::string c, int x, int y) {
 
 	SDL_Color color = { 255, 255, 255, 255 };
 
-	SDL_Surface *surf = TTF_RenderText_Blended(this->font, c.c_str(), color);
+	SDL_Surface *surf = TTF_RenderUTF8_Blended(this->font, c.c_str(), color);
 	if (surf == nullptr) {
 		panic("TTF_RenderText");
 	}
@@ -133,7 +133,7 @@ void Netrom::drawGlyph(std::string c, int x, int y) {
 
 	SDL_FreeSurface(surf);
 
-	draw(texture, x * 10, y * 20);
+	draw(texture, x * this->glyphWidth, y * this->glyphHeight);
 }
 
 void Netrom::poolEvents() {
@@ -145,11 +145,10 @@ void Netrom::poolEvents() {
 		}
 
 		if (e.type == SDL_KEYDOWN) {
-			this->quit = true;
-		}
-
-		if (e.type == SDL_MOUSEBUTTONDOWN) {
-			this->quit = true;
+			std::string state = e.key.type == SDL_KEYDOWN ? "down" : "up";
+			std::string name = SDL_GetKeyName(e.key.keysym.sym);
+			Event* ev = new KbdEvent(state, name);
+			this->currentLevel->event(ev);
 		}
 	}
 }
@@ -160,7 +159,7 @@ void Netrom::mainLoop() {
 			break;
 		SDL_RenderClear(this->ren);
 		poolEvents();
-		drawGlyphMatrix();
+		drawGlyphMatrix(this->currentLevel->draw());
 		SDL_RenderPresent(this->ren);
 		SDL_Delay(100);
 	}
@@ -171,19 +170,21 @@ void Netrom::panic(std::string msg) {
 	this->quit = true;
 }
 
-void Netrom::drawGlyphMatrix() {
+void Netrom::drawGlyphMatrix(GlyphMat m) {
 	int i, j;
-	char32_t *str = new char32_t[2];
-	std::u32string source;
-	std::wstring_convert<std::codecvt_utf8<char32_t>,char32_t> convert;
-	std::string dest;
-	for (i = 0; i < this->glyphMatrixY; i++) {
-		for (j = 0; j < this->glyphMatrixX; j++) {
-			char32_t c = this->glyphMatrix[i][j];
+	int x, y;
+	std::tie(x, y) = m.getSize();
+	for (i = 0; i < y; i++) {
+		for (j = 0; j < x; j++) {
+			char32_t *str = new char32_t[2];
+			std::u32string source;
+			std::string dest;
+			char32_t c = m.at(i, j);
 			str[0] = c;
-			str[1] = '\0';
+			str[1] = U'\0';
 			source = str;
-			dest = convert.to_bytes(source);
+			delete[] str;
+			dest = conv::utf_to_utf<char>(source);
 			drawGlyph(dest, j, i);
 		}
 	}
@@ -199,7 +200,14 @@ fs::path Netrom::getLib() {
 
 void Netrom::del(Netrom *gameEngine) {
 	delete gameEngine;
-	Py_Finalize();
+}
+
+std::tuple<int, int> Netrom::getMatrixSize() {
+	return std::make_tuple(this->screenWidth, this->screenHeight);
+}
+
+bool Netrom::debugEnabled() {
+	return this->debug;
 }
 
 } /* namespace netrom */

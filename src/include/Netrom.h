@@ -13,15 +13,10 @@
 
 #include <string>
 
-#include <boost/filesystem.hpp>
-#include <boost/python.hpp>
-
-#include <Python.h>
-
 #include "netrom.h"
-
-namespace fs = boost::filesystem;
-namespace py = boost::python;
+#include "Level.h"
+#include "GlyphMat.h"
+#include "Event.h"
 
 namespace netrom {
 
@@ -33,36 +28,42 @@ public:
 	SDL_Window* getWin();
 	fs::path getRes();
 	fs::path getLib();
-	py::object getPyGlobalNamespace();
 
-	static Netrom* init();
+	std::tuple<int, int> getMatrixSize();
+
+	static netrom::Netrom* init(int argc, char ** argv);
 	static void del(Netrom *gameEngine);
 
 	void poolEvents();
 	void mainLoop();
 
+	bool debugEnabled();
 private:
-	Netrom();
+	Netrom(int argc, char ** argv);
 	virtual ~Netrom();
 
 	void panic(std::string msg);
 
 	void draw(SDL_Texture *tex, int x, int y);
 	void drawGlyph(std::string c, int x, int y);
-	void drawGlyphMatrix();
+	void drawGlyphMatrix(GlyphMat m);
 
 	SDL_Window* win;
 	SDL_Renderer* ren;
 	bool initFailed;
 	bool quit;
 	TTF_Font* font;
-	char32_t **glyphMatrix;
-	int glyphMatrixX;
-	int glyphMatrixY;
+	int screenWidth;
+	int screenHeight;
 	fs::path root;
 	fs::path res;
 	fs::path lib;
 	netrom::Level *currentLevel;
+	int fontSize;
+	int glyphWidth;
+	int glyphHeight;
+
+	bool debug;
 };
 
 } /* namespace netrom */

@@ -8,22 +8,32 @@
 #ifndef SRC_INCLUDE_NETROM_H_
 #define SRC_INCLUDE_NETROM_H_
 
+#include <memory>
+
 #include <boost/filesystem.hpp>
-#include <boost/python.hpp>
+#include <boost/locale/encoding.hpp>
+#include <boost/shared_ptr.hpp>
 
 namespace fs = boost::filesystem;
-namespace py = boost::python;
+namespace conv = boost::locale::conv;
 
 namespace netrom {
 	class Netrom;
 	class Level;
-	class PyScript;
 	class GameObject;
-}
+	class UIElement;
+	class MsgBox;
+	class GlyphMat;
+	class Drawable;
+	class LuaScript;
 
-#include "GameObject.h"
-#include "Level.h"
-#include "Netrom.h"
-#include "PyScript.h"
+	template<typename T1, typename T2>
+	std::list<std::shared_ptr<T1>> ptrListConv(std::list<std::shared_ptr<T2>> p) {
+		std::list<std::shared_ptr<T1>> nl;
+		for (auto i : p)
+			nl.push_back(i);
+		return nl;
+	}
+}
 
 #endif /* SRC_INCLUDE_NETROM_H_ */
