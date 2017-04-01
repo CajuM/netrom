@@ -23,7 +23,68 @@ end
 
 function Character(icon, mask, name)
   local self = GameObject(icon, mask, name)
+
+  self.inventory = {}
+  self.hostileTowards = nil
+  self.goingTo = nil
+  self.heldItem = nil
+  self.movementLock = false
+
+  self.superMove = self.move
+  self.move = function(self, x, y)
+    if not self.movementLock then
+      self:superMove(x, y)
+      self.movementLock = true
+    end
+  end
+
+  self.inventoryAdd = function(self, go)
+    table.insert(self.inventory, go)
+  end
+
+  self.pickUp = function(self, go)
+     self:inventoryAdd(go)
+     go:del()
+     self.heldItem = go
+  end
+
+  self.setGoingTo = function(self, x, y)
+    self.hostileTowards = nil
+    self.goingTo = {}
+    self.goingTo.x = x
+    self.goingTo.y = y
+  end
+
+  self.setHostileTowards = function(self, go)
+    self.goingTo = nil
+    self.hostileTowards = go
+  end
   
+  self.animate = function(self)
+    if self.hostileTowards then
+      local sx, sy = self:getPos()
+      local tx, ty = self.hostileTowards:getPos()
+      local dx = tx - sx
+      local dy = ty - sy
+      local d = math.sqrt(dx * dx + dy * dy)
+      if d <= 50 and d > 1 then
+         nx, ny = currentLevel:getSP(sx, sy, tx ,ty)
+         self:move(nx, ny)
+      end
+    end 
+
+    if self.goingTo then
+      local sx, sy = self:getPos()
+      if sx == self.goingTo.x and sy == self.goingTo.y then
+        self.goingTo = nil
+        queueEvent({['eClass'] = 'Game', ['type'] = 'arrived', ['self'] = self})
+        return 
+      end
+      nx, ny = currentLevel:getSP(sx, sy, self.goingTo.x ,self.goingTo.y)
+      self:move(nx, ny)
+    end
+  end
+
   return self
 end
 
@@ -63,7 +124,12 @@ function Key(name)
   return self
 end
 
+tickn = 0
+
 function tick()
+	tickn = tickn + 1
+  player.movementLock = false
+  gabor.movementLock = false
   gabor:animate()
   while true do
     local e = nil
@@ -116,13 +182,31 @@ function processEvent(e)
     local how = e.val.how
     local what = e.val.what
     if self == door and who == player and what == coin then
-      console:msg('Narator: Te apuci sa freci moneda de usa inchisorii...iti place...')
-      console:msg('Gabor: Termina dracului cu prostia aia sau iti var bastonu-n gat !')
-      gabor:setGoingTo(6, 12)
+      if stage <= 3 then
+        console:msg('Narator: Te apuci sa freci moneda de usa inchisorii...iti place...')
+        console:msg('Gabor: Termina dracului cu prostia aia sau iti var bastonu-n gat !')
+        stage = stage + 1
+      elseif stage == 4 then
+        console:msg('Gabor: Mai ce sa-ti spun, ce se-ntampla la militie ramane la militie')
+        console:msg('Narator: Gaborul isi ia cheia si se indreapta cu pasi grabiti spre celula ta...pentru o clipa te bucuri ca iti va da drumul')
+        gabor:setGoingTo(6, 13)
+        stage = stage + 1
+      end
     end
     self:interact(who, how, what)
   end
+
+  if e.eClass == 'Game' and e.type == 'arrived' then
+     if e.self == gabor and stage == 5 then
+       console:msg('Narator: Gaborul deschide usa celulei...incepi sa te gandesti daca vei apuca sa-ti cureti panatalonii')  
+       door:interact(gabor, nil, key)
+       gabor:setHostileTowards(player)
+       stage = stage + 1
+     end 
+  end
 end
+
+stage = 1
 
 map = {
   '┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓',

@@ -1,14 +1,12 @@
 add_custom_target(copy_res_files ALL)
 
 list(APPEND res_files
-	fonts/
+	fonts
 	fonts/Monospace.ttf
-	levels/
+	levels
 	levels/intro
 	levels/intro/intro.lua
-	levels/openworld
-	levels/openworld/
-	levels/gamelib/
+	levels/gamelib
 	levels/gamelib/bindings.lua
 	levels/gamelib/GameObject.lua
 	levels/gamelib/GlyphMat.lua

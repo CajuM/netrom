@@ -4,8 +4,6 @@
  *  Created on: Dec 26, 2015
  *      Author: mihai
  */
-#ifndef SWIG_RUNTIME_VERSION
-
 #ifndef SRC_LUASCRIPT_H_
 #define SRC_LUASCRIPT_H_
 
@@ -51,4 +49,3 @@ private:
 /* namespace netrom */
 
 #endif /* SRC_LUASCRIPT_H_ */
-#endif

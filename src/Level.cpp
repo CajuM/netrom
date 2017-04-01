@@ -143,32 +143,30 @@ std::tuple<int, int> Level::getSP(int fx, int fy, int tx, int ty) {
 	std::tuple<int, int> ret;
 	int ww, wh;
 	std::tie(ww, wh) = this->worldMask.getSize();
-	int ** dist = new int*[wh];
+        std::vector<std::vector<int>> dist;
 	for (int i = 0; i < wh; i++) {
-		dist[i] = new int[ww];
+		dist.push_back(std::vector<int>(ww));
 		for (int j = 0; j < ww; j++) {
 			dist[i][j] = -1;
 		}
 	}
 	dist[fy][fx] = 0;
-	std::list<int*> queue;
-	queue.push_front(new int[2] { fy, fx });
+	std::list<std::tuple<int,int>> queue;
+	queue.push_front(std::make_tuple(fy, fx));
 	int d[4][2] = { { -1, 0 }, { 0, -1 }, { 1, 0 }, { 0, 1 } };
 	while (!queue.empty()) {
-		int * el = queue.back();
+		int ey, ex;
+		std::tie(ey, ex)  = queue.back();
 		queue.pop_back();
-		int ey = el[0];
-		int ex = el[1];
-		delete el;
 		for (int i = 0; i < 4; i++) {
 			int ny = ey + d[i][0];
 			int nx = ex + d[i][1];
 
 			if (ny < wh && ny >= 0 && nx < ww && nx >= 0) {
 				if (ny == ty && nx == tx) {
-					std::cout << "vodka" << std::endl;
+					dist[ny][nx] = dist[ey][ex] + 1;
 					int sx, sy;
-					while (ny != fy && nx != fx) {
+					while (ny != fy || nx != fx) {
 						int cx = 0, cy = 0;
 						int dmx = dist[ny][nx];
 						for (i = 0; i < 4; i++) {
@@ -178,7 +176,7 @@ std::tuple<int, int> Level::getSP(int fx, int fy, int tx, int ty) {
 								break;
 							}
 							int dd = dist[dy][dx];
-							if (dd < dmx) {
+							if (dd < dmx && dd != -1) {
 								dmx = dd;
 								cy = dy;
 								cx = dx;
@@ -196,7 +194,7 @@ std::tuple<int, int> Level::getSP(int fx, int fy, int tx, int ty) {
 				if (this->worldMask.at(ny, nx) == 0 && dist[ny][nx] == -1) {
 					dist[ny][nx] = dist[ey][ex] + 1;
 					if (dist[ny][nx] <= 50) {
-						queue.push_front(new int[2] { ny, nx });
+						queue.push_front(std::make_tuple(ny, nx));
 					}
 				}
 			}
@@ -204,24 +202,7 @@ std::tuple<int, int> Level::getSP(int fx, int fy, int tx, int ty) {
 	}
 
 	ret = std::make_tuple(0, 0);
-	end: for (int i = 0; i < wh; i++) {
-		for (int j = 0; j < ww; j++) {
-			std::cout << dist[i][j] << " ";
-		}
-		std::cout << std::endl;
-	}
-
-	while (!queue.empty()) {
-		auto el = queue.back();
-		delete el;
-		queue.pop_back();
-	}
-
-	for (int i = 0; i < wh; i++) {
-		delete dist[i];
-	}
-	delete dist;
-
+	end:
 	return ret;
 }
 

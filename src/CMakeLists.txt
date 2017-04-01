@@ -1,3 +1,5 @@
+include(FindPkgConfig)
+
 set (CMAKE_CXX_STANDARD 11)
 
 list(APPEND src
@@ -17,10 +19,10 @@ list(APPEND src
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++0x")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++0x")
 
-find_package(SDL2 REQUIRED)
-find_package(SDL2_ttf REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem system)
-find_package(LuaJIT REQUIRED)
+pkg_search_module(LUA REQUIRED luajit>=2.0.0)
+pkg_search_module(SDL2_TTF REQUIRED SDL2_ttf)
+pkg_search_module(SDL2 REQUIRED sdl2)
 
 
 include_directories(
@@ -29,7 +31,7 @@ include_directories(
 	${PYTHON_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
 	${CMAKE_CURRENT_SOURCE_DIR}/include
-	${LUAJIT_INCLUDE_DIR}
+	${LUA_INCLUDE_DIRS}
 	${CMAKE_BINARY_DIR}
 )
 
@@ -37,9 +39,9 @@ include_directories(
 add_executable(netrom ${src})
 
 target_link_libraries(netrom 
-	${SDL2_LIBRARY}
-	${SDL2_TTF_LIBRARY}
+	${SDL2_LIBRARIES}
+	${SDL2_TTF_LIBRARIES}
 	${Boost_FILESYSTEM_LIBRARY}
 	${Boost_SYSTEM_LIBRARY}
-        ${LUAJIT_LIBRARIES}
+        ${LUA_LIBRARIES}
 )
