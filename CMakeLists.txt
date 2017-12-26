@@ -1,5 +1,5 @@
 project(netrom)
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.7)
 
 include(ExternalProject)
 
