@@ -9,7 +9,7 @@
 
 namespace netrom {
 
-MsgBox::MsgBox(Level* level) : UIElement(level){
+MsgBox::MsgBox(Level * level) : UIElement(level){
 	this->scroll = 0;
 	this->width = 0;
 	this->height = 0;
@@ -21,8 +21,8 @@ MsgBox::~MsgBox() {
 	// TODO Auto-generated destructor stub
 }
 
-std::shared_ptr<netrom::MsgBox> MsgBox::get(Level* level) {
-	return std::shared_ptr<netrom::MsgBox>(new netrom::MsgBox(level));
+MsgBox * MsgBox::get(Level* level) {
+	return new MsgBox(level);
 }
 
 void MsgBox::msg(std::string msg) {
@@ -62,7 +62,7 @@ void MsgBox::pushChar(char32_t c) {
 }
 
 void MsgBox::pushString(std::u32string s) {
-	int i;
+	size_t i;
 	for (i = 0; i < s.length(); i++)
 		pushChar(s[i]);
 }
@@ -71,35 +71,35 @@ void MsgBox::event(SDL_Event* e) {
 
 }
 
-GlyphMat MsgBox::draw() {
+GlyphMat * MsgBox::draw() {
 	if (this->width == 0 || this->height == 0)
-		return GlyphMat();
+		return new GlyphMat();
 
-	int i;
-	GlyphMat dr(this->width, this->height);
+	size_t i;
+	GlyphMat * dr = new GlyphMat(this->width, this->height);
 
-	dr.at(0, 0) = U'╔';
+	dr->at(0, 0) = U'╔';
 	for (i = 1; i < this->width - 1; i++)
-		dr.at(0, i) = U'═';
-	dr.at(0, this->width - 1) = U'╗';
+		dr->at(0, i) = U'═';
+	dr->at(0, this->width - 1) = U'╗';
 
 	for (i = 1; i < this->height - 1; i++) {
-		dr.at(i, 0) = U'║';
-		int mi = this->scroll + i - 1;
-		int j;
+		dr->at(i, 0) = U'║';
+		size_t mi = this->scroll + i - 1;
+		size_t j;
 		std::u32string& str = this->msgV[mi];
 		for (j = 1; j < this->width; j++)
 			if (mi < this->msgV.size() && j <= str.length()) {
-				dr.at(i, j) = str[j - 1];
+				dr->at(i, j) = str[j - 1];
 			} else {
-				dr.at(i, j) = U'\0';
+				dr->at(i, j) = U'\0';
 			}
-		dr.at(i, this->width - 1) = U'║';
+		dr->at(i, this->width - 1) = U'║';
 	}
-	dr.at(this->height - 1, 0) = U'╚';
+	dr->at(this->height - 1, 0) = U'╚';
 	for (i = 1; i < this->width - 1; i++)
-		dr.at(this->height - 1, i) = U'═';
-	dr.at(this->height - 1, this->width - 1) = U'╝';
+		dr->at(this->height - 1, i) = U'═';
+	dr->at(this->height - 1, this->width - 1) = U'╝';
 
 	return dr;
 }

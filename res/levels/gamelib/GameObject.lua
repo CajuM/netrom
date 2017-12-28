@@ -11,7 +11,7 @@ local function GameObject(icon, mask, name)
       vicon[i-1] = GlyphMat(icon[i]).C
       vmask[i-1] = GlyphMat(mask[i]).C
     end
-    return ffi.gc(C.GameObject_new(currentLevel.C, vicon, vmask, licon), C.GameObject_gc)
+    return C.GameObject_new(currentLevel.C, vicon, vmask, licon)
   end
 
   local self = {}
@@ -23,12 +23,6 @@ local function GameObject(icon, mask, name)
   self.getPos = function(self)
     local ret = C.GameObject_getPos(self.C)
     return ret.x, ret.y
-  end
-  self.add = function(self)
-    currentLevel:addGO(self)
-  end
-  self.del = function(self)
-    currentLevel:delGO(self)
   end
   self.move = function(self, x, y)
     C.GameObject_move(self.C, x, y)

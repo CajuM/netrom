@@ -13,13 +13,12 @@ local function Level(ptr)
     C.Level_addGO(self.C, go.C)
   end
   self.getGOByPos = function(self, x, y)
-    cgo =  ffi.gc(C.Level_getGOByPos(self.C, x, y), C.GameObject_gc)
-    cgoid = C.GameObject_getId(cgo)
-    cgoid = tonumber(cgoid)
+    cgo = C.Level_getGOByPos(self.C, x, y)
+    cgoid = tonumber(C.GameObject_getId(cgo))
     return self.gos[cgoid]
   end
   self.getNearGO = function(self, go)
-    cgo = ffi.gc(C.Level_getNearGO(self.C, go.C), C.GameObject_gc)
+    cgo = C.Level_getNearGO(self.C, go.C)
     cgoid = tonumber(C.GameObject_getId(cgo))
     return self.gos[cgoid]
   end

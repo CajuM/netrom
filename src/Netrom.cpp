@@ -16,11 +16,11 @@
 namespace netrom {
 
 Netrom::Netrom(int argc, char ** argv) {
-	if (argc == 2 && std::string(argv[1]) == "-d") {
-		std::cout << "Debugging enabled" << std::endl;
-		this->debug = true;
+	if (argc == 2 && std::string(argv[1]) == "--jit") {
+		std::cout << "JIT enabled" << std::endl;
+		this->jit = true;
 	} else {
-		this->debug = false;
+		this->jit = false;
 	}
 
 	this->initFailed = false;
@@ -170,16 +170,16 @@ void Netrom::panic(std::string msg) {
 	this->quit = true;
 }
 
-void Netrom::drawGlyphMatrix(GlyphMat m) {
+void Netrom::drawGlyphMatrix(GlyphMat* m) {
 	int i, j;
 	int x, y;
-	std::tie(x, y) = m.getSize();
+	std::tie(x, y) = m->getSize();
 	for (i = 0; i < y; i++) {
 		for (j = 0; j < x; j++) {
 			char32_t *str = new char32_t[2];
 			std::u32string source;
 			std::string dest;
-			char32_t c = m.at(i, j);
+			char32_t c = m->at(i, j);
 			str[0] = c;
 			str[1] = U'\0';
 			source = str;
@@ -188,6 +188,8 @@ void Netrom::drawGlyphMatrix(GlyphMat m) {
 			drawGlyph(dest, j, i);
 		}
 	}
+
+	delete m;
 }
 
 fs::path Netrom::getRes() {
@@ -206,8 +208,8 @@ std::tuple<int, int> Netrom::getMatrixSize() {
 	return std::make_tuple(this->screenWidth, this->screenHeight);
 }
 
-bool Netrom::debugEnabled() {
-	return this->debug;
+bool Netrom::jitEnabled() {
+	return this->jit;
 }
 
 } /* namespace netrom */

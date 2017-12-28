@@ -16,8 +16,8 @@ list(APPEND src
 	Event.cpp
 )
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++11 -rdynamic")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11 -rdynamic")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++11 -rdynamic -Wall -Werror")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11 -rdynamic -Wall -Werror")
 
 find_package(Boost REQUIRED COMPONENTS filesystem system)
 if(NOT Boost_FILESYSTEM_FOUND)
@@ -27,7 +27,7 @@ if(NOT Boost_SYSTEM_FOUND)
 	message(FATAL_ERROR "Need boost-system")
 endif()
 
-pkg_search_module(LUA REQUIRED luajit>=2.1.0)
+pkg_search_module(LUA REQUIRED luajit>=2.1)
 pkg_search_module(SDL2_TTF REQUIRED SDL2_ttf)
 pkg_search_module(SDL2 REQUIRED sdl2)
 

@@ -21,17 +21,17 @@ namespace netrom {
 
 class GameObject: public Drawable {
 public:
-	GameObject(netrom::Level* level,
-			std::vector<std::shared_ptr<netrom::GlyphMat>>& icon,
-			std::vector<std::shared_ptr<netrom::GlyphMat>>& mask);
+	GameObject(netrom::Level * level,
+			std::vector<netrom::GlyphMat *> icon,
+			std::vector<netrom::GlyphMat *> mask);
 	GameObject();
 	virtual ~GameObject();
 
 	unsigned long long getId();
 
-	netrom::GlyphMat draw();
+	netrom::GlyphMat * draw();
 	void move(int x, int y);
-	netrom::GlyphMat getMask();
+	netrom::GlyphMat * getMask();
 
 	void setFrame(int frame);
 
@@ -45,14 +45,14 @@ public:
 	void setNormalSpeed(double speed);
 
 	std::tuple<int, int, int, int> getBounds();
-	bool near(GameObject* go);
-	bool intersects(GameObject* go);
+	bool near(GameObject * go);
+	bool intersects(GameObject * go);
 	bool onTop(GameObject* go);
 	bool isNull();
 
 private:
-	std::vector<std::shared_ptr<netrom::GlyphMat>> icon;
-	std::vector<std::shared_ptr<netrom::GlyphMat>> mask;
+	std::vector<netrom::GlyphMat *> icon;
+	std::vector<netrom::GlyphMat *> mask;
 	int frame;
 	int x;
 	int y;

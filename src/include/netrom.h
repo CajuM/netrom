@@ -8,8 +8,6 @@
 #ifndef SRC_INCLUDE_NETROM_H_
 #define SRC_INCLUDE_NETROM_H_
 
-#include <memory>
-
 #include <boost/filesystem.hpp>
 #include <boost/locale/encoding.hpp>
 #include <boost/shared_ptr.hpp>
@@ -28,8 +26,8 @@ namespace netrom {
 	class LuaScript;
 
 	template<typename T1, typename T2>
-	std::list<std::shared_ptr<T1>> ptrListConv(std::list<std::shared_ptr<T2>> p) {
-		std::list<std::shared_ptr<T1>> nl;
+	std::list<T1 *> ptrListConv(std::list<T2 *> p) {
+		std::list<T1 *> nl;
 		for (auto i : p)
 			nl.push_back(i);
 		return nl;

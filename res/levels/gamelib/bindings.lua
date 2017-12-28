@@ -15,7 +15,6 @@ function bindings.bind()
     GlyphMat* GlyphMat_new(char**, int h);
 
     GameObject* GameObject_new(Level* level, GlyphMat** icon, GlyphMat** mask, int nicon);
-    void GameObject_gc(GameObject* self);
     void GameObject_setPos(GameObject* self, int x, int y);
     V2 GameObject_getPos(GameObject* self);
     void GameObject_move(GameObject* self, int x, int y);
@@ -38,11 +37,9 @@ function bindings.bind()
     void UIElement_setSize(UIElement* self, int x, int y);
 
     Scene* Scene_new(Level* level);
-    void Scene_gc(Scene * self);
 
     MsgBox* MsgBox_new(Level *level);
     void MsgBox_msg(MsgBox* self, char* msg);
-    void MsgBox_gc(MsgBox* self);
   ]])
 end
 

@@ -12,9 +12,9 @@
 #include <set>
 
 namespace netrom {
-
-Level::Level(Netrom* gameEngine, std::string name) {
-	this->world = GlyphMat();
+Level::Level(Netrom * gameEngine, std::string name) {
+	this->world = new GlyphMat();
+	this->worldMask = new GlyphMat();
 	this->nextGOId = 0;
 	this->gameEngine = gameEngine;
 	this->levelPath = this->gameEngine->getRes() / "levels" / name
@@ -25,18 +25,28 @@ Level::Level(Netrom* gameEngine, std::string name) {
 
 Level::~Level() {
 	delete this->script;
+	delete this->world;
+	delete this->worldMask;
+
+	for (auto go: this->gameObjects) {
+		delete go;
+	}
+
+	for (auto ue: this->uiElements) {
+		delete ue;
+	}
 }
 
-GlyphMat Level::mergeWorld(std::list<std::shared_ptr<Drawable>> dl) {
-	GlyphMat dr;
+GlyphMat * Level::mergeWorld(std::list<Drawable *> dl) {
+	GlyphMat * dr;
 	int mx = 0, my = 0, mmx = 0, mmy = 0;
-	std::list<std::tuple<GlyphMat, GlyphMat, int, int>> sd;
+	std::list<std::tuple<GlyphMat*, GlyphMat*, int, int>> sd;
 
 	for (auto d : dl) {
-		GlyphMat dd = d->draw();
+		GlyphMat * dd = d->draw();
 		int ux, uy;
 		int uw, uh;
-		std::tie(uw, uh) = dd.getSize();
+		std::tie(uw, uh) = dd->getSize();
 		std::tie(ux, uy) = d->getPos();
 		sd.push_back(std::make_tuple(dd, d->getMask(), ux, uy));
 
@@ -53,26 +63,31 @@ GlyphMat Level::mergeWorld(std::list<std::shared_ptr<Drawable>> dl) {
 			mmy = uy;
 	}
 
-	dr = GlyphMat(mx - mmx, my - mmy);
+	dr = new GlyphMat(mx - mmx, my - mmy);
 	for (auto e : sd) {
-		GlyphMat m, mm;
+		GlyphMat *m, *mm, *drr;
 		int x, y;
 		std::tie(m, mm, x, y) = e;
-		dr = dr.copyMasked(m, mm, x - mmx, y - mmy);
+		drr = dr->copyMasked(m, mm, x - mmx, y - mmy);
+		delete dr;
+		delete m;
+		delete mm;
+		dr = drr;
 	}
+
 	return dr;
 }
 
-GlyphMat Level::mergeUI(std::list<std::shared_ptr<Drawable>> dl) {
-	GlyphMat dr;
+GlyphMat * Level::mergeUI(std::list<Drawable *> dl) {
+	GlyphMat * dr;
 	int mx = 0, my = 0, mmx = 0, mmy = 0;
-	std::list<std::tuple<GlyphMat, int, int>> sd;
+	std::list<std::tuple<GlyphMat*, int, int>> sd;
 
 	for (auto d : dl) {
-		GlyphMat dd = d->draw();
+		GlyphMat* dd = d->draw();
 		int ux, uy;
 		int uw, uh;
-		std::tie(uw, uh) = dd.getSize();
+		std::tie(uw, uh) = dd->getSize();
 		std::tie(ux, uy) = d->getPos();
 		sd.push_back(std::make_tuple(dd, ux, uy));
 
@@ -89,27 +104,31 @@ GlyphMat Level::mergeUI(std::list<std::shared_ptr<Drawable>> dl) {
 			mmy = uy;
 	}
 
-	dr = GlyphMat(mx - mmx, my - mmy);
+	dr = new GlyphMat(mx - mmx, my - mmy);
 	for (auto e : sd) {
-		GlyphMat m;
+		GlyphMat* m, *drr;
 		int x, y;
 		std::tie(m, x, y) = e;
-		dr = dr.copy(m, x - mmx, y - mmy, GlyphMat::COPY_OR);
+		drr = dr->copy(m, x - mmx, y - mmy, GlyphMat::COPY_OR);
+		delete m;
+		delete dr;
+		dr = drr;
 	}
+
 	return dr;
 }
 
-GlyphMat Level::mergeMasks(std::list<std::shared_ptr<Drawable>> dl,
+GlyphMat * Level::mergeMasks(std::list<Drawable *> dl,
 		GlyphMat::copyMode cm) {
-	GlyphMat dr;
+	GlyphMat * dr;
 	int mx = 0, my = 0, mmx = 0, mmy = 0;
-	std::list<std::tuple<GlyphMat, int, int>> sd;
+	std::list<std::tuple<GlyphMat*, int, int>> sd;
 
 	for (auto d : dl) {
-		GlyphMat dd = d->getMask();
+		GlyphMat * dd = d->getMask();
 		int ux, uy;
 		int uw, uh;
-		std::tie(uw, uh) = dd.getSize();
+		std::tie(uw, uh) = dd->getSize();
 		std::tie(ux, uy) = d->getPos();
 		sd.push_back(std::make_tuple(dd, ux, uy));
 
@@ -126,13 +145,17 @@ GlyphMat Level::mergeMasks(std::list<std::shared_ptr<Drawable>> dl,
 			mmy = uy;
 	}
 
-	dr = GlyphMat(mx - mmx, my - mmy);
+	dr = new GlyphMat(mx - mmx, my - mmy);
 	for (auto e : sd) {
-		GlyphMat m;
+		GlyphMat *m, *drr;
 		int x, y;
 		std::tie(m, x, y) = e;
-		dr = dr.copy(m, x - mmx, y - mmy, cm);
+		drr = dr->copy(m, x - mmx, y - mmy, cm);
+		delete m;
+		delete dr;
+		dr = drr;
 	}
+
 	return dr;
 }
 
@@ -142,7 +165,7 @@ std::tuple<int, int> Level::getSP(int fx, int fy, int tx, int ty) {
 	}
 	std::tuple<int, int> ret;
 	int ww, wh;
-	std::tie(ww, wh) = this->worldMask.getSize();
+	std::tie(ww, wh) = this->worldMask->getSize();
         std::vector<std::vector<int>> dist;
 	for (int i = 0; i < wh; i++) {
 		dist.push_back(std::vector<int>(ww));
@@ -191,7 +214,7 @@ std::tuple<int, int> Level::getSP(int fx, int fy, int tx, int ty) {
 					goto end;
 				}
 
-				if (this->worldMask.at(ny, nx) == 0 && dist[ny][nx] == -1) {
+				if (this->worldMask->at(ny, nx) == 0 && dist[ny][nx] == -1) {
 					dist[ny][nx] = dist[ey][ex] + 1;
 					if (dist[ny][nx] <= 50) {
 						queue.push_front(std::make_tuple(ny, nx));
@@ -206,9 +229,9 @@ std::tuple<int, int> Level::getSP(int fx, int fy, int tx, int ty) {
 	return ret;
 }
 
-std::shared_ptr<GameObject> Level::colides(GameObject* go) {
+GameObject * Level::colides(GameObject * go) {
 	for (auto g : this->gameObjects) {
-		if (g.get() == go)
+		if (g == go)
 			continue;
 		if (!g->near(go))
 			continue;
@@ -216,12 +239,13 @@ std::shared_ptr<GameObject> Level::colides(GameObject* go) {
 			return g;
 		}
 	}
-	return std::shared_ptr < GameObject > (nullptr);
+
+	return nullptr;
 }
 
-std::shared_ptr<GameObject> Level::onTop(GameObject* go) {
+GameObject * Level::onTop(GameObject * go) {
 	for (auto g : this->gameObjects) {
-		if (g.get() == go)
+		if (g == go)
 			continue;
 		if (!g->near(go))
 			continue;
@@ -229,53 +253,58 @@ std::shared_ptr<GameObject> Level::onTop(GameObject* go) {
 			return g;
 		}
 	}
-	return std::shared_ptr < GameObject > (nullptr);
+
+	return nullptr;
 }
 
-GlyphMat Level::draw() {
+GlyphMat * Level::draw() {
 	this->script->tick();
+
+	delete this->worldMask;
 	this->worldMask = mergeMasks(ptrListConv<Drawable>(this->gameObjects),
 			GlyphMat::COPY_OR);
+
+	delete this->world;
 	this->world = mergeWorld(ptrListConv<Drawable>(this->gameObjects));
+
 	return mergeUI(ptrListConv<Drawable>(this->uiElements));
 }
 
-void Level::addGO(std::shared_ptr<GameObject> go) {
+void Level::addGO(GameObject * go) {
 	this->gameObjects.push_back(go);
 }
 
-void Level::delGO(std::shared_ptr<GameObject> go) {
+void Level::delGO(GameObject * go) {
 	auto i = this->gameObjects.begin();
 	for (; i != this->gameObjects.end(); ++i) {
-		if (*i == go)
-			break;
+		if (*i == go) {
+			this->gameObjects.erase(i);
+			delete go;
+			return;
+		}
 	}
-
-	if (i == this->gameObjects.end())
-		return;
-
-	this->gameObjects.erase(i);
 }
 
 size_t Level::lenGO() {
 	return this->gameObjects.size();
 }
 
-std::shared_ptr<GameObject> Level::getGO(size_t index) {
+GameObject * Level::getGO(size_t index) {
 	return *std::next(this->gameObjects.begin(), index);
 }
 
-std::shared_ptr<netrom::GameObject> Level::getGOByPos(int x, int y) {
+GameObject * Level::getGOByPos(int x, int y) {
 	for (auto go : this->gameObjects) {
 		if (go->getPos() == std::make_pair(x, y))
 			return go;
 	}
-	return std::shared_ptr < netrom::GameObject > (new GameObject());
+
+	return nullptr;
 }
 
-std::shared_ptr<netrom::GameObject> Level::getNearGO(
-		std::shared_ptr<netrom::GameObject> go) {
-	auto goi = onTop(go.get());
+GameObject * Level::getNearGO(
+		GameObject * go) {
+	auto goi = onTop(go);
 	if (goi != nullptr)
 		return goi;
 
@@ -286,39 +315,42 @@ std::shared_ptr<netrom::GameObject> Level::getNearGO(
 	ny += oy;
 
 	go->setPos(nx, ny);
-	goi = onTop(go.get());
+	goi = onTop(go);
 	go->setPos(ox, oy);
 	if (goi != nullptr)
 		return goi;
 
-	return std::shared_ptr < netrom::GameObject > (new GameObject());
+	return nullptr;
 }
 
-void Level::addUE(std::shared_ptr<UIElement> ue) {
+void Level::addUE(UIElement * ue) {
 	this->uiElements.push_back(ue);
 }
 
-void Level::delUE(size_t index) {
-	this->uiElements.erase(std::next(this->uiElements.begin(), index));
+void Level::delUE(UIElement * ue) {
+	auto end = this->uiElements.end();
+	for (auto i = this->uiElements.begin(); i != end; ++i) {
+		if (*i == ue) {
+			this->uiElements.erase(i);
+			delete *i;
+			return;
+		}
+	}
 }
 
 size_t Level::lenUE() {
 	return this->uiElements.size();
 }
 
-std::shared_ptr<UIElement> Level::getUE(size_t index) {
+UIElement * Level::getUE(size_t index) {
 	return *std::next(this->uiElements.begin(), index);
 }
 
-void Level::newWorld(size_t width, size_t height) {
-	this->world = GlyphMat(width, height);
-}
-
-const GlyphMat Level::getWorld() {
+GlyphMat* Level::getWorld() {
 	return this->world;
 }
 
-netrom::Netrom* Level::getGameEngine() {
+Netrom* Level::getGameEngine() {
 	return this->gameEngine;
 }
 

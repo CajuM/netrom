@@ -64,6 +64,19 @@ GlyphMat::GlyphMat(char** a, int h) {
 	}
 }
 
+GlyphMat::GlyphMat(GlyphMat* a) {
+	this->x = a->x;
+	this->y = a->y;
+
+	this->matrix = new char32_t*[this->y];
+	for (int i = 0; i < this->y; i++) {
+		this->matrix[i] = new char32_t[this->x];
+		for (int j = 0; j < this->x; j++) {
+			this->matrix[i][j] = a->matrix[i][j];
+		}
+	}
+}
+
 GlyphMat::GlyphMat(std::vector<std::vector<char32_t>>& a) {
 	this->y = a.size();
 	if (this->y == 0) {
@@ -78,18 +91,6 @@ GlyphMat::GlyphMat(std::vector<std::vector<char32_t>>& a) {
 		this->matrix[i] = new char32_t[this->x];
 		for (j = 0; j < this->x; j++)
 		this->matrix[i][j] = a[i][j];
-	}
-}
-
-GlyphMat::GlyphMat(const GlyphMat& m) {
-	int i, j;
-	this->x = m.x;
-	this->y = m.y;
-	this->matrix = new char32_t*[this->y];
-	for (i = 0; i < this->y; i++) {
-		this->matrix[i] = new char32_t[this->x];
-		for (j = 0; j < this->x; j++)
-			this->matrix[i][j] = m.matrix[i][j];
 	}
 }
 
@@ -114,7 +115,7 @@ char32_t& GlyphMat::at(int i, int j) {
 }
 
 GlyphMat::~GlyphMat() {
-	int i, j;
+	int i;
 	for (i = 0; i < this->y; i++)
 		delete[] (this->matrix[i]);
 	delete[] (this->matrix);
@@ -124,87 +125,69 @@ std::tuple<int, int> GlyphMat::getSize() {
 	return std::make_pair(this->x, this->y);
 }
 
-GlyphMat GlyphMat::copy(GlyphMat &m, int x, int y, copyMode cm) {
+GlyphMat * GlyphMat::copy(GlyphMat * m, int x, int y, copyMode cm) {
 	int nx, ny, mx, my;
-	std::tie(mx, my) = m.getSize();
+	std::tie(mx, my) = m->getSize();
 
 	nx = std::max(mx + x, this->x);
 	ny = std::max(my + y, this->y);
 
-	GlyphMat nm = GlyphMat(nx, ny);
+	GlyphMat * nm = new GlyphMat(nx, ny);
 	int i, j;
 	for (i = 0; i < this->y; i++)
 		for (j = 0; j < this->x; j++)
-			nm.at(i, j) = at(i, j);
+			nm->at(i, j) = at(i, j);
 
 	for (i = 0; i < my; i++)
 		for (j = 0; j < mx; j++) {
-			char32_t c = m.at(i, j);
+			char32_t c = m->at(i, j);
 			if (cm == COPY_OR) {
 				if (!std::isspace(c))
-					nm.at(y + i, x + j) = c;
+					nm->at(y + i, x + j) = c;
 			} else {
-				nm.at(y + i, x + j) = c;
+				nm->at(y + i, x + j) = c;
 			}
 		}
 
 	return nm;
 }
 
-GlyphMat GlyphMat::clip(int x, int y, int w, int h) {
-	GlyphMat ret(w, h);
+GlyphMat * GlyphMat::clip(size_t x, size_t y, size_t w, size_t h) {
+	GlyphMat * ret = new GlyphMat(w, h);
 
-	for (int i = 0; i < h; i++)
-		for (int j = 0; j < w; j++)
-			ret.at(i, j) = this->at(y + i, x + j);
+	for (size_t i = 0; i < h; i++)
+		for (size_t j = 0; j < w; j++)
+			ret->at(i, j) = this->at(y + i, x + j);
 
 	return ret;
 }
 
-GlyphMat GlyphMat::copyMasked(GlyphMat& m, GlyphMat& gom, int x, int y) {
+GlyphMat * GlyphMat::copyMasked(GlyphMat * m, GlyphMat * gom, int x, int y) {
 	int nx, ny, mx, my;
-	std::tie(mx, my) = m.getSize();
+	std::tie(mx, my) = m->getSize();
 
 	nx = std::max(mx + x, this->x);
 	ny = std::max(my + y, this->y);
 
-	GlyphMat nm = GlyphMat(nx, ny);
+	GlyphMat * nm = new GlyphMat(nx, ny);
 	int i, j;
 	for (i = 0; i < this->y; i++)
 		for (j = 0; j < this->x; j++)
-			nm.at(i, j) = at(i, j);
+			nm->at(i, j) = at(i, j);
 
 	for (i = 0; i < my; i++)
 		for (j = 0; j < mx; j++) {
-			char32_t c = m.at(i, j);
-			char32_t co = nm.at(y + i, x + j);
-			if (!std::isgraph(gom.at(i, j)) && std::isgraph(co))
+			char32_t c = m->at(i, j);
+			char32_t co = nm->at(y + i, x + j);
+			if (!std::isgraph(gom->at(i, j)) && std::isgraph(co))
 				continue;
 
-			nm.at(y + i, x + j) = c;
+			nm->at(y + i, x + j) = c;
 		}
 
 	return nm;
 }
 
-GlyphMat& GlyphMat::operator=(const GlyphMat& m) {
-	int i, j;
-	for (i = 0; i < this->y; i++)
-		delete[] this->matrix[i];
-	delete[] this->matrix;
-
-	this->x = m.x;
-	this->y = m.y;
-
-	this->matrix = new char32_t*[this->y];
-	for (i = 0; i < this->y; i++) {
-		this->matrix[i] = new char32_t[this->x];
-		for (j = 0; j < this->x; j++)
-			this->matrix[i][j] = m.matrix[i][j];
-	}
-
-	return *this;
-}
 void GlyphMat::print() {
 	int i, j;
 	for (i = 0; i < this->y; i++) {

@@ -12,7 +12,6 @@
 #include <string>
 #include <tuple>
 #include <list>
-#include <memory>
 
 #include "netrom.h"
 #include "Netrom.h"
@@ -27,48 +26,47 @@ namespace netrom {
 class Level {
 public:
 	virtual ~Level();
-	Level(netrom::Netrom* gameEngine, std::string path);
+	Level(Netrom* gameEngine, std::string path);
 
-	netrom::GlyphMat draw();
+	GlyphMat * draw();
 
-	void addGO(std::shared_ptr<netrom::GameObject> go);
-	void delGO(std::shared_ptr<netrom::GameObject> go);
+	void addGO(GameObject * go);
+	void delGO(GameObject * go);
 	size_t lenGO();
-	std::shared_ptr<netrom::GameObject>  getGO(size_t index);
-	std::shared_ptr<netrom::GameObject>  getGOByPos(int x, int y);
-	std::shared_ptr<netrom::GameObject>  getNearGO(std::shared_ptr<netrom::GameObject> go);
+	GameObject *  getGO(size_t index);
+	GameObject *  getGOByPos(int x, int y);
+	GameObject *  getNearGO(GameObject * go);
 	std::tuple<int, int>  getSP(int fx, int fy, int tx, int ty);
 
-	void addUE(std::shared_ptr<netrom::UIElement>  go);
-	void delUE(size_t index);
+	void addUE(UIElement * ue);
+	void delUE(UIElement * ue);
 	size_t lenUE();
-	std::shared_ptr<netrom::UIElement>  getUE(size_t index);
+	UIElement * getUE(size_t index);
 
-	void newWorld(size_t width, size_t height);
-	const netrom::GlyphMat getWorld();
+	GlyphMat * getWorld();
 
-	netrom::Netrom* getGameEngine();
+	Netrom * getGameEngine();
 
 	void event(Event* e);
 
-	std::shared_ptr<GameObject> colides(GameObject* go);
-	std::shared_ptr<GameObject> onTop(GameObject* go);
+	GameObject * colides(GameObject * go);
+	GameObject * onTop(GameObject * go);
 
 	unsigned long long getNextGOId();
 
 private:
 	void update();
-	netrom::GlyphMat mergeWorld(std::list<std::shared_ptr<Drawable>> dl);
-	netrom::GlyphMat mergeUI(std::list<std::shared_ptr<Drawable>> dl);
-	netrom::GlyphMat mergeMasks(std::list<std::shared_ptr<Drawable>> dl, netrom::GlyphMat::copyMode cm);
+	GlyphMat * mergeWorld(std::list<Drawable *> dl);
+	GlyphMat * mergeUI(std::list<Drawable *> dl);
+	GlyphMat * mergeMasks(std::list<Drawable *> dl, GlyphMat::copyMode cm);
 
-	std::list<std::shared_ptr<netrom::GameObject>> gameObjects;
-	std::list<std::shared_ptr<netrom::UIElement>> uiElements;
-	netrom::Netrom* gameEngine;
+	std::list<GameObject *> gameObjects;
+	std::list<UIElement *> uiElements;
+	Netrom * gameEngine;
 	fs::path levelPath;
-	netrom::GlyphMat world;
-	netrom::GlyphMat worldMask;
-	netrom::LuaScript* script;
+	GlyphMat * world;
+	GlyphMat * worldMask;
+	LuaScript * script;
 	unsigned long long nextGOId;
 };
 

@@ -9,7 +9,6 @@
 #define SRC_INCLUDE_MSGBOX_H_
 
 #include <tuple>
-#include <memory>
 
 #include "netrom.h"
 #include "UIElement.h"
@@ -19,16 +18,16 @@ namespace netrom {
 
 class MsgBox : public UIElement {
 public:
-	MsgBox(Level* level);
+	MsgBox(Level * level);
 	virtual ~MsgBox();
 
 	void msg(std::string msg);
 
-	netrom::GlyphMat draw();
+	netrom::GlyphMat* draw();
 
 	void event(SDL_Event* e);
 
-	static std::shared_ptr<netrom::MsgBox> get(Level* level);
+	static netrom::MsgBox * get(Level* level);
 
 	void setSize(int x, int y);
 
@@ -40,8 +39,8 @@ private:
 
 	std::vector<std::u32string> msgV;
 
-	int innerWidth;
-	int innerHeight;
+	size_t innerWidth;
+	size_t innerHeight;
 };
 
 } /* namespace netrom */

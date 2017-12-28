@@ -16,8 +16,8 @@ class Drawable {
 public:
 	virtual ~Drawable() {}
 
-	virtual netrom::GlyphMat draw() = 0;
-	virtual netrom::GlyphMat getMask() {return netrom::GlyphMat();}
+	virtual netrom::GlyphMat* draw() = 0;
+	virtual netrom::GlyphMat* getMask() {return new netrom::GlyphMat();}
 	virtual std::pair<int, int> getPos() = 0;
 	virtual void setPos(int x, int y) = 0;
 };

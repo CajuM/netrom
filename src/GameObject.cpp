@@ -9,9 +9,9 @@
 
 namespace netrom {
 
-GameObject::GameObject(netrom::Level* level,
-		std::vector<std::shared_ptr<netrom::GlyphMat>>& icon,
-		std::vector<std::shared_ptr<netrom::GlyphMat>>& mask) {
+GameObject::GameObject(netrom::Level * level,
+		std::vector<netrom::GlyphMat *> icon,
+		std::vector<netrom::GlyphMat *> mask) {
 	this->level = level;
 	this->icon = icon;
 	this->mask = mask;
@@ -52,7 +52,13 @@ GameObject::GameObject() {
 }
 
 GameObject::~GameObject() {
-	// TODO Auto-generated destructor stub
+	for (auto e: this->icon) {
+		delete e;
+	}
+
+	for (auto e: this->mask) {
+		delete e;
+	}
 }
 
 std::tuple<int, int, int, int> GameObject::getBounds() {
@@ -64,12 +70,12 @@ void GameObject::setFrame(int frame) {
 	this->frame = frame;
 }
 
-GlyphMat GameObject::draw() {
-	return *this->icon[this->frame];
+GlyphMat * GameObject::draw() {
+	return new GlyphMat(this->icon[this->frame]);
 }
 
-GlyphMat GameObject::getMask() {
-	return *this->mask[this->frame];
+GlyphMat * GameObject::getMask() {
+	return new GlyphMat(this->mask[this->frame]);
 }
 
 std::pair<int, int> GameObject::getPos() {
@@ -95,8 +101,8 @@ void GameObject::move(int x, int y) {
 	int oy = this->y;
 	this->x += this->normalSpeed * x;
 	this->y += this->normalSpeed * y;
-	std::shared_ptr<GameObject> cgo = this->level->colides(this);
-	if (cgo.get()) {
+	auto cgo = this->level->colides(this);
+	if (cgo) {
 		this->x = ox;
 		this->y = oy;
 		this->level->event(new CollisionEvent(this->id, cgo->id));
@@ -126,12 +132,14 @@ bool GameObject::intersects(GameObject* go) {
 	int x1, y1, w1, h1;
 	int x2, y2, w2, h2;
 
+	bool ret = false;
+
 	std::tie(x1, y1) = this->getPos();
-	GlyphMat m1 = this->getMask();
-	std::tie(w1, h1) = m1.getSize();
+	GlyphMat * m1 = this->getMask();
+	std::tie(w1, h1) = m1->getSize();
 	std::tie(x2, y2) = go->getPos();
-	GlyphMat m2 = go->getMask();
-	std::tie(w2, h2) = m2.getSize();
+	GlyphMat * m2 = go->getMask();
+	std::tie(w2, h2) = m2->getSize();
 
 	for (i = 0; i < h1; i++) {
 		if (((y1 + i) >= (y2 + h2)) || ((y1 + i) < y2))
@@ -139,11 +147,18 @@ bool GameObject::intersects(GameObject* go) {
 		for (j = 0; j < w1; j++) {
 			if (((x1 + j) >= (x2 + w2)) || ((x1 + j) < x2))
 				continue;
-			if (!(std::iswspace(m1.at(i, j)) || std::iswspace(m2.at(y1 + i - y2, x1 + j - x2))))
-				return true;
+			if (!(std::iswspace(m1->at(i, j)) || std::iswspace(m2->at(y1 + i - y2, x1 + j - x2)))) {
+				ret = true;
+				goto end;
+			}
+
 		}
 	}
-	return false;
+end:
+	delete m1;
+	delete m2;
+
+	return ret;
 }
 
 bool GameObject::onTop(GameObject* go) {
@@ -151,12 +166,14 @@ bool GameObject::onTop(GameObject* go) {
 	int x1, y1, w1, h1;
 	int x2, y2, w2, h2;
 
+	bool ret= false;
+
 	std::tie(x1, y1) = this->getPos();
-	GlyphMat m1 = this->draw();
-	std::tie(w1, h1) = m1.getSize();
+	GlyphMat* m1 = this->draw();
+	std::tie(w1, h1) = m1->getSize();
 	std::tie(x2, y2) = go->getPos();
-	GlyphMat m2 = go->draw();
-	std::tie(w2, h2) = m2.getSize();
+	GlyphMat* m2 = go->draw();
+	std::tie(w2, h2) = m2->getSize();
 
 	for (i = 0; i < h1; i++) {
 		if (((y1 + i) >= (y2 + h2)) || ((y1 + i) < y2))
@@ -164,11 +181,17 @@ bool GameObject::onTop(GameObject* go) {
 		for (j = 0; j < w1; j++) {
 			if (((x1 + j) >= (x2 + w2)) || ((x1 + j) < x2))
 				continue;
-			if (!(std::iswspace(m1.at(i, j)) || std::iswspace(m2.at(y1 + i - y2, x1 + j - x2))))
-				return true;
+			if (!(std::iswspace(m1->at(i, j)) || std::iswspace(m2->at(y1 + i - y2, x1 + j - x2)))) {
+				ret = true;
+				goto end;
+			}
 		}
 	}
-	return false;
+end:
+	delete m1;
+	delete m2;
+
+	return ret;
 }
 
 unsigned long long GameObject::getId() {

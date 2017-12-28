@@ -19,7 +19,7 @@ public:
 	Scene(Level* level);
 	virtual ~Scene();
 
-	netrom::GlyphMat draw();
+	netrom::GlyphMat * draw();
 	void event(SDL_Event* e);
 
 private:

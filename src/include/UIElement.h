@@ -33,7 +33,7 @@ public:
 
 protected:
 	int x, y;
-	int width, height;
+	size_t width, height;
 	Level* level;
 };
 

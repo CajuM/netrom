@@ -37,16 +37,16 @@ public:
 	void poolEvents();
 	void mainLoop();
 
-	bool debugEnabled();
+	bool jitEnabled();
 private:
 	Netrom(int argc, char ** argv);
 	virtual ~Netrom();
 
 	void panic(std::string msg);
 
-	void draw(SDL_Texture *tex, int x, int y);
+	void draw(SDL_Texture* tex, int x, int y);
 	void drawGlyph(std::string c, int x, int y);
-	void drawGlyphMatrix(GlyphMat m);
+	void drawGlyphMatrix(GlyphMat* m);
 
 	SDL_Window* win;
 	SDL_Renderer* ren;
@@ -63,7 +63,7 @@ private:
 	int glyphWidth;
 	int glyphHeight;
 
-	bool debug;
+	bool jit;
 };
 
 } /* namespace netrom */

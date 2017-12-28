@@ -18,9 +18,9 @@ LuaScript::LuaScript(Level* level, fs::path scriptPath) {
 	this->lua = luaL_newstate();
 	luaL_openlibs(this->lua);
 
-	if (this->level->getGameEngine()->debugEnabled()) {
+	if (!this->level->getGameEngine()->jitEnabled()) {
 		luaL_dostring(this->lua,
-				"jit = require('jit') ; jit.off() ; print('Jit disabled')");
+				"jit = require('jit') ; jit.off() ; print('JIT disabled')");
 	}
 
 	std::string luaPath = (this->level->getGameEngine()->getRes() / "levels"

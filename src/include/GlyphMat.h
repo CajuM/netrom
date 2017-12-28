@@ -24,8 +24,8 @@ public:
 	GlyphMat(std::vector<std::string>& a);
 	GlyphMat(std::vector<std::vector<char32_t>>& a);
 	GlyphMat(char** a, int h);
+	GlyphMat(GlyphMat* a);
 	GlyphMat();
-	GlyphMat(const GlyphMat& m);
 	virtual ~GlyphMat();
 
 	enum copyMode {
@@ -36,12 +36,10 @@ public:
 	char32_t** toC();
 	char32_t& at(int i, int j);
 	std::tuple<int, int> getSize();
-	GlyphMat copy(GlyphMat& m, int x, int y, copyMode cm);
-	GlyphMat copyMasked(GlyphMat& m, GlyphMat& gom, int x, int y);
-	GlyphMat clip(int x, int y, int w, int h);
+	GlyphMat* copy(GlyphMat* m, int x, int y, copyMode cm);
+	GlyphMat* copyMasked(GlyphMat* m, GlyphMat* gom, int x, int y);
+	GlyphMat* clip(size_t x, size_t y, size_t w, size_t h);
 	void print();
-
-	GlyphMat& operator=(const GlyphMat& m);
 
 private:
 	char32_t** matrix;

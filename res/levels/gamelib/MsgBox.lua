@@ -4,7 +4,7 @@ local C = ffi.C
 
 local function MsgBox()
   local self = UIElement()
-  self.C = ffi.gc(C.MsgBox_new(currentLevel.C), C.MsgBox_gc)
+  self.C = C.MsgBox_new(currentLevel.C)
   self.msg = function(self, msg)
     msgc = ffi.new('char[?]', msg:len() + 1)
     ffi.copy(msgc, msg)

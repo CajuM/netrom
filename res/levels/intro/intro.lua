@@ -43,8 +43,7 @@ function Character(icon, mask, name)
   end
 
   self.pickUp = function(self, go)
-     self:inventoryAdd(go)
-     go:del()
+     self:inventoryAdd(go.name)
      self.heldItem = go
   end
 
@@ -173,7 +172,6 @@ function processEvent(e)
   end
 
   if e.eClass == 'Game' and e.type == 'collision' then
-    print(e)
   end
 
   if e.eClass == 'Game' and e.type == 'interaction' then
@@ -181,10 +179,13 @@ function processEvent(e)
     local who = e.val.who
     local how = e.val.how
     local what = e.val.what
-    if self == door and who == player and what == coin then
+    if self == coin and who == player and what == nil then
+	who:pickUp(coin)
+	currentLevel:delGO(self)
+    elseif self == door and who == player and what == coin then
       if stage <= 3 then
         console:msg('Narator: Te apuci sa freci moneda de usa inchisorii...iti place...')
-        console:msg('Gabor: Termina dracului cu prostia aia sau iti var bastonu-n gat !')
+        console:msg('Gabor: Termina dracului cu prostia aia sau iti var bastonu-n gat!')
         stage = stage + 1
       elseif stage == 4 then
         console:msg('Gabor: Mai ce sa-ti spun, ce se-ntampla la militie ramane la militie')
@@ -193,7 +194,6 @@ function processEvent(e)
         stage = stage + 1
       end
     end
-    self:interact(who, how, what)
   end
 
   if e.eClass == 'Game' and e.type == 'arrived' then
@@ -234,39 +234,39 @@ map = {
   '┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛'
 }
 map = Wall(map)
-map:add()
+currentLevel:addGO(map)
 
 key = Key('k1')
 
 door = Door({'='}, key)
 door:setPos(6, 14)
-door:add()
+currentLevel:addGO(door)
 
 gabor = Gabor()
 gabor:setPos(33, 5)
 gabor:inventoryAdd(key)
-gabor:add()
+currentLevel:addGO(gabor)
 
 player = Player()
 player:setPos(5, 16)
-player:add()
+currentLevel:addGO(player)
 
 coin = Coin()
 coin:setPos(5, 18)
-coin:add()
+currentLevel:addGO(coin)
 
 screenSize = gameEngine:getMatrixSize()
 
 scene = Scene()
 scene:setSize(screenSize.x, screenSize.y - 7)
-scene:add()
+currentLevel:addUE(scene)
 
 console = MsgBox()
 console:setPos(0, screenSize.y - 7)
 console:setSize(screenSize.x, 7)
-console:add()
+currentLevel:addUE(console)
 console:msg(
   'Narator: Esti intr-o celula la sectia de politie, habar n-ai cum ai ajuns aici... '..
   'Gaborul, ehem, domnul politist are o conversatie animata la telefon cu sotia lui\n'..
-  'Gabor: Sa bagi bine la cap femeie ca nu iei nici un ban de pe urma mea !'
+  'Gabor: Sa bagi bine la cap femeie ca nu iei nici un ban de pe urma mea!'
 )

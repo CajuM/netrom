@@ -11,9 +11,6 @@ local function UIElement()
     self = ffi.cast('UIElement*', self.C)
     C.UIElement_setSize(self, w, h)
   end
-  self.add = function(self)
-    currentLevel:addUE(self)
-  end
   return self
 end
 
