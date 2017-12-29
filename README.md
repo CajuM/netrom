@@ -10,6 +10,8 @@ The following dependencies are required:
 - luajit >= 2.1
 - boost-system
 - boost-filesystem
+- SDL2_ttf
+- sdl2
 
 To build run:
 ```
