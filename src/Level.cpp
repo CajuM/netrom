@@ -188,7 +188,7 @@ std::tuple<int, int> Level::getSP(int fx, int fy, int tx, int ty) {
 			if (ny < wh && ny >= 0 && nx < ww && nx >= 0) {
 				if (ny == ty && nx == tx) {
 					dist[ny][nx] = dist[ey][ex] + 1;
-					int sx, sy;
+					int sx = 0, sy = 0;
 					while (ny != fy || nx != fx) {
 						int cx = 0, cy = 0;
 						int dmx = dist[ny][nx];

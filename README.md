@@ -14,7 +14,7 @@ The following dependencies are required:
 To build run:
 ```
 mkdir out; cd out
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
 make
 ```
 
