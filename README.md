@@ -15,8 +15,14 @@ To build run:
 ```
 mkdir out; cd out
 cmake ..
-make; make install
+make
 ```
+
+To start the game run:
+```
+./src/netrom
+```
+
 The Game
 --------
 So far it's just a demo of a guy who wakes up in a cell at the police station without any memory how he got there. The game is in Romanian, for now, if you don't like it grab a dictionary and translate it. I'm still working on the plot.
